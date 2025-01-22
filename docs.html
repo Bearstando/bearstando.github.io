@@ -36,17 +36,20 @@
       const iframe = document.getElementById('resultIframe');
       const url = input.value.trim();
 
-      // Validate if the URL starts with 'http://' or 'https://'
+      if (url == "games.org" || url == "unblock-it.com") {
+        if (url == "games.org") {
+          iframe.src = "https://rocketsoccerderby.gitlab.io/";
+        }
+        if (url == "unblock-it.com") {
+          iframe.src = "https://cloud.global.ssl.fastly.net";
+        }
+      } else {
+        // Validate if the URL starts with 'http://' or 'https://'
       if (url.startsWith('http://') || url.startsWith('https://')) {
         iframe.src = url; // Set the iframe's src to the URL
       } else {
-        iframe.src = "https://" + url; // Append "https://" to the URL
+        iframe.src = "https://" + url; // Set the iframe's src to the URL
       }
-      // Easter Eggs
-      if (url = "unblock-it.com") {
-        iframe.src = "https://happybirthday.centrodiagnosticogenetico.com/";
-      } else if (url = "games.org") {
-        iframe.src = "https://rocketsoccerderby.gitlab.io/";
       }
 
       input.value = ''; // Clear the input field after submission
