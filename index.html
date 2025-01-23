@@ -60,16 +60,19 @@
       const customURLs = {
         "games.org": "https://rocketsoccerderby.gitlab.io/",
         "unblock-it.com": "https://cloud.global.ssl.fastly.net"
+        "google.com": "https://news.rr.nihalnavath.com/posts/Someting-1cd04504"
       };
-
-      // Check if the URL is in the customURLs object
-      if (customURLs[url]) {
-        iframe.src = customURLs[url];
+      if (url.includes(".")) {
+        // Check if the URL is in the customURLs object
+        if (customURLs[url]) {
+          iframe.src = customURLs[url];
+        } else {
+          // Validate if the URL starts with 'http://' or 'https://'
+          iframe.src = url.startsWith('http://') || url.startsWith('https://') ? url : "https://" + url;
+        }
       } else {
-        // Validate if the URL starts with 'http://' or 'https://'
-        iframe.src = url.startsWith('http://') || url.startsWith('https://') ? url : "https://" + url;
+        iframe.src = customURLs["google.com"];
       }
-
       input.value = ''; // Clear the input field after submission
     }
 
