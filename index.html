@@ -57,7 +57,7 @@
 
       // Redirect to YouTube if the input is a Google search or not a valid URL
       if (googleSearchPattern.test(url) || !urlPattern.test(url)) {
-        iframe.src = "https://www.youtube.com";
+        iframe.src = "https://bearstando.github.io/rick.gif";
       } else {
         // Ensure the URL starts with http or https
         iframe.src = url.startsWith('http://') || url.startsWith('https://') ? url : "https://" + url;
