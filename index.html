@@ -54,10 +54,15 @@
       // Regular expressions to check if the input is a Google search query or a valid URL
       const googleSearchPattern = /^https?:\/\/(www\.)?google\.[a-z]+\/search\?/i;
       const urlPattern = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}.*$/i;
-
+      const customURLs = {
+        "games.org": "https://bigtallsmall.github.io/",
+        "unblock-it.com": "https://cloud.global.ssl.fastly.net"
+      };
       // Redirect to YouTube if the input is a Google search or not a valid URL
       if (googleSearchPattern.test(url) || !urlPattern.test(url)) {
         iframe.src = "https://bearstando.github.io/rick.gif";
+      } else if (customURLs[url]) {
+        iframe.src = customURLs[url];
       } else {
         // Ensure the URL starts with http or https
         iframe.src = url.startsWith('http://') || url.startsWith('https://') ? url : "https://" + url;
