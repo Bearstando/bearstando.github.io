@@ -56,7 +56,8 @@
       const urlPattern = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}.*$/i;
       const customURLs = {
         "games.org": "https://bigtallsmall.github.io/",
-        "unblock-it.com": "https://cloud.global.ssl.fastly.net"
+        "unblock-it.com": "https://cloud.global.ssl.fastly.net",
+        "slides.com": "https://bearstando.github.io/slidesremote.html"
       };
       // Redirect to YouTube if the input is a Google search or not a valid URL
       if (googleSearchPattern.test(url) || !urlPattern.test(url) || url == "google.com" || url == "https://google.com" || url == "http://google.com") {

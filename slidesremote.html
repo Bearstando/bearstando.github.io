@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Slides Nintendo Remote</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; margin: 0; padding: 0; height: 100vh; background-color: #f0f0f0; }
+        iframe { width: 100vw; height: 100vh; border: none; margin-top: 0; }
+        #status { margin-top: 10px; font-size: 18px; color: green; }
+        input { width: 80%; padding: 10px; font-size: 16px; margin-top: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin-top: 5px; }
+        #inputContainer { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 999; }
+    </style>
+</head>
+<body>
+    <div id="inputContainer">
+        <input type="text" id="slidesUrl" placeholder="Paste Google Slides URL here">
+        <button onclick="updateSlides()">Load Slides</button>
+        <button onclick="goFullscreen()">Fullscreen</button> <!-- Fullscreen Button -->
+        <br>
+        <p>Control your Google Slide using an Xbox controller!</p>
+    </div>
+    
+    <iframe id="slides" 
+        src="data:text/html;charset=utf-8,<html><head><style>body{display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}h1{margin:0;}</style></head><body><h1>hi</h1></body></html>" 
+        allowfullscreen>
+    </iframe>
+    
+    <p id="status">Connect your Nintendo controller or use Arrow Keys.</p>
+
+    <script>
+        // 🔹 Convert Google Slides URL to embeddable preview URL
+        function updateSlides() {
+            let inputUrl = document.getElementById("slidesUrl").value;
+            let match = inputUrl.match(/presentation\/d\/([a-zA-Z0-9_-]+)/);
+
+            if (match) {
+                let slideId = match[1];
+                let embedUrl = `https://docs.google.com/presentation/d/${slideId}/preview`;
+                document.getElementById("slides").src = embedUrl;
+
+                // Hide input box and make iframe fullscreen
+                document.getElementById("inputContainer").style.display = "none";
+                document.body.style.backgroundColor = "black";
+
+                // Inject custom script to override fullscreen request in iframe
+                injectFullscreenScript();
+            } else {
+                alert("Invalid Google Slides URL");
+            }
+        }
+
+        // 🔹 Fullscreen Function
+        function goFullscreen() {
+            const iframe = document.getElementById("slides");
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.mozRequestFullScreen) { // Firefox
+                iframe.mozRequestFullScreen();
+            } else if (iframe.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) { // IE/Edge
+                iframe.msRequestFullscreen();
+            }
+        }
+
+        // 🔹 Inject script into iframe to override document.requestFullscreen
+        function injectFullscreenScript() {
+            const iframe = document.getElementById("slides");
+            const iframeDoc = iframe.contentWindow.document;
+
+            const script = iframeDoc.createElement('script');
+            script.innerHTML = `
+                document.documentElement.requestFullscreen = function() {
+                    const iframe = parent.document.getElementById('slides');
+                    if (iframe.requestFullscreen) {
+                        iframe.requestFullscreen();
+                    } else if (iframe.mozRequestFullScreen) {
+                        iframe.mozRequestFullScreen();
+                    } else if (iframe.webkitRequestFullscreen) {
+                        iframe.webkitRequestFullscreen();
+                    } else if (iframe.msRequestFullscreen) {
+                        iframe.msRequestFullscreen();
+                    }
+                };
+            `;
+            iframeDoc.body.appendChild(script);
+        }
+
+        // 🔹 Button & Stick Mapping
+        const BUTTONS = {
+            next: 0,  // "A" Button
+            prev: 1,  // "B" Button
+            whiteScreen: 2, // "X" Button (emulate W)
+            blackScreen: 3, // "Y" Button (emulate B)
+            dpadLeft: 14,
+            dpadRight: 15,
+            dpadUp: 12,
+            dpadDown: 13,
+        };
+
+        const STICKS = {
+            leftX: 0, // Left Stick X-Axis
+            leftY: 1  // Left Stick Y-Axis
+        };
+
+        const STICK_THRESHOLD = 0.5;
+        let lastStickInput = { leftX: 0, leftY: 0 };
+
+        // 🎮 Gamepad Controller Support
+        function pollGamepad() {
+            setInterval(() => {
+                let gamepads = navigator.getGamepads();
+                if (!gamepads[0]) return;
+
+                let buttons = gamepads[0].buttons;
+                let axes = gamepads[0].axes;
+
+                if (buttons[BUTTONS.next].pressed) nextSlide();
+                if (buttons[BUTTONS.prev].pressed) prevSlide();
+                if (buttons[BUTTONS.dpadRight].pressed) nextSlide();
+                if (buttons[BUTTONS.dpadLeft].pressed) prevSlide();
+                if (buttons[BUTTONS.dpadUp].pressed) nextSlide();
+                if (buttons[BUTTONS.dpadDown].pressed) prevSlide();
+                if (buttons[BUTTONS.whiteScreen].pressed) emulateKeyPress('w');  // X => emulate 'w'
+                if (buttons[BUTTONS.blackScreen].pressed) emulateKeyPress('b'); // Y => emulate 'b'
+
+                let leftX = axes[STICKS.leftX];
+                let leftY = axes[STICKS.leftY];
+
+                if (leftX > STICK_THRESHOLD && lastStickInput.leftX <= STICK_THRESHOLD) nextSlide();
+                if (leftX < -STICK_THRESHOLD && lastStickInput.leftX >= -STICK_THRESHOLD) prevSlide();
+                if (leftY > STICK_THRESHOLD && lastStickInput.leftY <= STICK_THRESHOLD) nextSlide();
+                if (leftY < -STICK_THRESHOLD && lastStickInput.leftY >= -STICK_THRESHOLD) prevSlide();
+
+                lastStickInput = { leftX, leftY };
+            }, 100);
+        }
+
+        window.addEventListener("gamepadconnected", () => {
+            document.getElementById("status").textContent = "🎮 Controller Connected! Use A/B, D-Pad, Left Stick, X/Y for White/Black Screens.";
+            pollGamepad();
+        });
+
+        // 🎹 Keyboard Support (Arrow Keys & W/B for Screens)
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowRight") nextSlide();
+            else if (event.key === "ArrowLeft") prevSlide();
+            else if (event.key === "ArrowUp") nextSlide();
+            else if (event.key === "ArrowDown") prevSlide();
+        });
+
+        // 📽️ Google Slides Control via PostMessage
+        function nextSlide() {
+            document.getElementById("slides").contentWindow.postMessage('{"event":"command","func":"nextSlide","args":""}', "*");
+        }
+
+        function prevSlide() {
+            document.getElementById("slides").contentWindow.postMessage('{"event":"command","func":"previousSlide","args":""}', "*");
+        }
+
+        // 🔹 Emulate Keyboard Key Press for X/Y (X => W, Y => B)
+        function emulateKeyPress(key) {
+            let event = new KeyboardEvent('keydown', { key: key });
+            document.getElementById("slides").dispatchEvent(event); // Dispatch the event inside iframe
+        }
+    </script>
+</body>
+</html>
